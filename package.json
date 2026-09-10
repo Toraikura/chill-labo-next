@@ -1,0 +1,11 @@
+{
+  "name": "chill-labo-next",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node --check assets/js/site.js && node scripts/check.mjs",
+    "package": "node scripts/package.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

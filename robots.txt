@@ -1,3 +1,6 @@
-# PREVIEW ONLY — replace before production domain cutover.
-User-agent: *
+User-agent: GPTBot
 Disallow: /
+
+User-agent: *
+Allow: /
+# Preview pages carry noindex; crawling is allowed to read that directive.
