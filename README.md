@@ -34,7 +34,7 @@ python3 -m http.server 8080
 - 通常予約は[Instagram公式プロフィール](https://www.instagram.com/CHILLLABOTOKYO/)からDMへ。直DMリンクではありません。電話・[Google Maps](https://maps.app.goo.gl/GPKRcTt7F3grPJck7)も併記します。
 - コースは[TableCheckの日本語店舗入口](https://www.tablecheck.com/ja/chilllabo-tokyo)へ。英語ページでは日本語のコース詳細へ進むことを明記。クリック・DM表示を予約成立と扱いません。
 - 1Fは準備中。営業開始・在庫・商品価格は表示しません。第三の酒は自分たちで田植え・稲刈りをした米を使用するという事実まで。未公開の制作記録へのリンクは作りません。
-- SATの酒とPLAYGROUNDの香り・米への出発リンクを実装。他サイト側からChill Laboへの帰り道の追加・修正は別作業です。
+- SATのトップページとPLAYGROUNDの香り・米への出発リンクを実装。他サイト側からChill Laboへの帰り道の追加・修正は別作業です。
 
 ## 検索と配信設定
 
