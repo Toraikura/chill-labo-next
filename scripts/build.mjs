@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { buildLegacy } from './legacy.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const origin = (process.env.SITE_ORIGIN || 'https://toraikura.github.io/chill-labo-next').replace(/\/$/, '');
@@ -110,4 +111,5 @@ for (const lang of ['ja', 'en']) await writeFile(path.join(root, lang === 'ja' ?
 await writeFile(path.join(root, 'robots.txt'), `User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nAllow: /\n${indexable ? `Sitemap: ${origin}/sitemap.xml\n` : '# Preview pages carry noindex; crawling is allowed to read that directive.\n'}`);
 await writeFile(path.join(root, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc></url><url><loc>${origin}/en/</loc></url></urlset>\n`);
 await writeFile(path.join(root, '404.html'), `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Page not found | Chill Labo</title><link rel="stylesheet" href="${origin}/assets/css/styles.css"></head><body><main class="not-found wrap"><p class="eyebrow">CHILL LABO AKASAKA / 404</p><h1>このページは<br>見つかりませんでした。</h1><p>We couldn’t find this page.</p><div class="actions"><a class="button button-red" href="${origin}/">日本語TOPへ →</a><a class="button button-outline" href="${origin}/en/">English home →</a></div></main></body></html>`);
-console.log(`Built JA / EN: ${origin} (${indexable ? 'indexable' : 'noindex preview'})`);
+await buildLegacy({ root, origin });
+console.log(`Built JA / EN and legacy routes: ${origin} (${indexable ? 'indexable' : 'noindex preview'})`);

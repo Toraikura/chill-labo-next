@@ -35,3 +35,15 @@ for (const [file, lang] of [['index.html', 'ja'], ['en/index.html', 'en']]) {
   console.log(`PASS ${file}: metadata, prices, structured data, anchors, assets`);
 }
 console.log('Static publication checks passed. Browser/device QA is separate.');
+const homepage = await readFile(path.join(root, 'index.html'), 'utf8');
+const origin = homepage.match(/rel="canonical" href="([^"]+)"/)[1].replace(/\/$/, '');
+for (const [route, target] of [['sakebar_chilllaboakasaka', '/en/'], ['archives/129', '/'], ['archives/132', '/en/'], ['page/2', '/']]) {
+  const html = await readFile(path.join(root, route, 'index.html'), 'utf8');
+  assert(html.includes(`rel="canonical" href="${origin}${target}"`), `${route}: wrong destination`);
+  assert(html.includes('noindex,follow') && html.includes('http-equiv="refresh"'), `${route}: static compatibility policy`);
+}
+if (origin === 'https://chilllabo.tokyo') {
+  for (const file of ['index.html', 'en/index.html']) assert((await readFile(path.join(root, file), 'utf8')).includes('content="index,follow"'), `${file}: production must be indexable`);
+  assert((await readFile(path.join(root, 'robots.txt'), 'utf8')).includes('Sitemap: https://chilllabo.tokyo/sitemap.xml'));
+}
+console.log('Legacy route and production-mode checks passed.');

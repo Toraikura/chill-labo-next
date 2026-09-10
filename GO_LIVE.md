@@ -1,47 +1,81 @@
-# 既存ドメインへの移行手順
+# chilllabo.tokyo 本番移行・再開手順
 
-GitHub Pagesの確認用公開と、`https://chilllabo.tokyo/` への移行を分けて扱います。今回、お名前.comのDNS・既存WordPress・独自ドメイン設定は変更していません。この文書は本番移行を完了したという報告ではありません。
+2026-09-11時点。本番移行はユーザー許可済み、旧版の復旧用バックアップは不要という指定です。現在は **Xserverへのログイン待ち**。お名前.com Naviにはログイン済みですが、DNS・Pagesの独自ドメイン・HTTPSはまだ変更していません。本番向けローカル生成と静的検査のPASSを、公開完了とは扱いません。
 
-## 1. 移行先と旧URLの扱いを先に決める
+## 1. ログイン後はXserverのDNS・メール確認から再開
 
-既存TOP、英語 `/sakebar_chilllaboakasaka`、記事 `/archives/129`、`/page/2` 等について、実在・検索流入・被リンクと対応先を確認します。無関係な記事を一律TOPへ送らない方針を保ちます。
+公開DNSの確認値は次のとおりです。切替直前にも再照合します。
 
-**GitHub Pages単体では、任意の旧URLに対する真のHTTP 301転送を設定できません。** 旧英語URLから `/en/` へ301転送する場合は、対応するホスト／CDNで処理します。GitHub Pagesを使い続ける場合は、旧パスに互換用の静的案内を用意する方法もありますが、リンク案内・JavaScript移動・meta refreshをHTTP 301と報告しません。現在の404ページも301転送の代替ではありません。
+| 項目 | 確認値 |
+|---|---|
+| 権威NS | `ns1.xserver.jp`〜`ns5.xserver.jp` |
+| `chilllabo.tokyo` A | `202.254.239.96` |
+| `www.chilllabo.tokyo` A | `202.254.239.96` |
+| MX | 優先度 `0`、宛先 `chilllabo.tokyo` |
+| SPF TXT | `v=spf1 +a:sv7415.xserver.jp +a:chilllabo.tokyo +mx include:spf.sender.xserver.jp ~all` |
+| `sv7415.xserver.jp` A | `202.254.239.96` |
 
-移行方式と旧URL対応を確定する前にWordPressを停止しません。SAT・PLAYGROUNDから戻る旧URLや、既に配布したQRがあれば同時に確認します。
+ドメイン登録先がお名前.comでも、現在の権威DNSはXserverです。今回のWeb移行のためにNSをお名前.comへ変更する必要はありません。未知のメール・認証レコードを欠落させるようなNS移管は行いません。
 
-## 2. 本番向けに生成する
+Xserverのサーバーパネルで `chilllabo.tokyo` を選び、次を確認します。
 
-編集元は `scripts/build.mjs`。日英本文・料金・営業時間・住所・電話・予約条件を公開直前に照合します。旧公式に残る4時間プランは復活させず、通常2行と料理付き2時間／3時間を分けます。
+- DNSレコード一覧とTTL。A/AAAA/CNAMEだけでなく、MX、SPF、DKIM、DMARC、メール用ホスト、認証用TXT、CAA等の既存設定を確認する。
+- 実際に利用中のメールアカウント・転送・送受信サーバーと、Xserverで維持するかどうか。公開MXの存在だけでは利用中かどうかは確定できない。
+- **現在のMXはapex自体を指すため、そのAをPagesへ変えるとメール配送先も変わる。** メールを維持する場合は、Xserverが案内する有効なメール宛先を確認してMX等を整えてからWeb用Aを切り替える。`sv7415.xserver.jp` が同じIPという理由だけで、新しいMX宛先に採用しない。
+- SPFの `+a:chilllabo.tokyo` と `+mx` もWeb切替・MX変更の影響を受ける。利用する送信元に合わせて調整し、SPFを重複作成しない。DKIM/DMARC等の既存設定を保持する。
+
+全面バックアップは作らず、切替対象と保持対象のDNS設定を確認して進めます。認証情報や私的メール本文を作業記録に残しません。
+
+## 2. 本番用ファイルと旧URL対応を確認
 
 ```sh
-SITE_ORIGIN=https://chilllabo.tokyo SITE_INDEXABLE=true npm run build
+npm run build:production
 npm run check
 npm run package
 ```
 
-この設定で日英HTMLは `index,follow`、canonical・hreflang・OG URL・sitemapは本番ドメインになります。`robots.txt` は検索用のクロールを許可し、GPTBotの学習用クロールは拒否する構成を保ち、本番sitemapのURLを追加します。ロボット設定の実際の適用はドメインルートへの配信後に確認します。
+`build:production` は `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` を指定して生成するローカル用入口です。DNSやPages設定は変更しません。日英HTMLの `index,follow`、自己参照canonical・相互hreflang・OG URL、本番sitemap、旧URLの静的検査はPASS済みです。
 
-**`.github/workflows/pages.yml` のビルドstepまたはjobの環境変数にも、`SITE_ORIGIN=https://chilllabo.tokyo` と `SITE_INDEXABLE='true'` を設定してください。** ローカルだけを変更すると、Actionsが既定のGitHub確認用設定で再生成します。GitHub確認用originのまま検索許可する指定はビルド側で拒否されます。
+`robots.txt` は一般の検索クロールを許可し、`GPTBot` は `Disallow: /`、本番sitemapを案内します。sitemapの掲載URLは `/` と `/en/` です。旧URL用ファイルも `scripts/package.mjs` が `_site/` に含めます。
 
-## 3. ドメイン切替の前後に照合する
+| 旧経路 | 移行先 | 根拠 |
+|---|---|---|
+| `/sakebar_chilllaboakasaka` | `/en/` | 既存の英語店舗ページ |
+| `/archives/129` | `/` | 現在は移転・公式サイトへの案内 |
+| `/archives/132` | `/en/` | 現在は英語公式サイトへの案内 |
+| `/page/2` | `/` | 日本語店舗TOPの重複ページ |
 
-- 画像とフォントはローカル配信へ移行済み。 `_site/` 内の画像を日英ページが参照でき、旧WordPress画像を取得していないことを実際の通信で確認する。
-- 本番の `/`・`/en/` が正常表示し、HTTPS・canonical・相互hreflang・robots・sitemap・404・旧URL対応が選択した方式どおりに動くことを確認する。日英本文とBarOrPub構造化データの店舗情報を一致させる。
-- お名前.comのDNS、GitHub Pagesの独自ドメイン設定、HTTPSの有効化を選択した構成に合わせる。既存のメール用DNS等を確認し、Web切替と混同して上書きしない。
-- 通常予約はInstagram公式プロフィール、料理付きはTableCheckの日本語入口、道順はMaps、電話は `tel:+818087008528`。英語のTableCheck案内は日本語詳細へ移動することを表示する。予約画面を開く操作は予約成立として計測・報告しない。
-- メニュー、料理の展開、予約文コピー、言語切替、固定CTA、Maps／Instagramから戻る動作を日英で確認する。Chromeのモバイル幅確認と実機iPhone Safariの確認を分ける。
+`scripts/legacy.mjs` はcanonical・可視リンクとJavaScriptによる移動を生成し、JavaScript無効時は即時meta refreshを使います。JavaScript有効時の旧アンカー対応は `prices→pricing`、`nearby-hotels→access`、`experience→experience`、`food→courses`、`hours→access`、`about→discover`、`faq→faq`。未対応のアンカーは引き継ぎません。
 
-## 4. 他サイトとの接続
+**これらは静的互換ページで、HTTP 301ではありません。** GitHub Pages単体では任意の旧URLに真の301転送を設定できません。旧記事 `/archives/689`、`/archives/709`、`/archives/738`、`/archives/428` 等には同等の新記事がないため、通常の404とします。無関係な記事をTOPへ一律転送しません。
 
-Chill Labo側からSATの酒、PLAYGROUNDの香り・米へ進むリンクは実装済みです。SAT／PLAYGROUND自体はこのリポジトリでは変更しません。PLAYGROUNDからChill Laboへの帰り道、SATの正式ドメインへのリンク統一、将来のFIELD記録の公開と店舗への接続は別途実装・確認します。
+画像・フォントは同じサイト内から配信し、旧WordPress画像への依存は解消済みです。旧4時間プランは復活させず、通常1時間3,300円／自動延長1時間1,100円と、料理付き2時間6,600円／3時間8,800円を分けます。価格は各1人税込。公開前に営業時間・住所・電話・コース条件も照合します。
 
-1Fは準備中を維持し、開業日・営業時間・販売商品が確認できた時に更新します。田んぼ記録や商品在庫を推測してリンク・販売CTAを有効化しません。
+本番用bundleとDNS観測記録はリポジトリ外の作業出力にも準備済みです。別環境では上記コマンドから生成できるため、特定のローカル出力パスを前提にしません。
 
-## 5. 公開後の確認と計測
+## 3. メール維持を確認した後、PagesとDNSを切り替える
 
-Actionsの成功、実際に配信される日英HTML、各CTA、独自ドメインの状態をそれぞれ確認して報告します。Search Consoleで本番sitemap・取得・インデックス・正規URLを確認し、公開前後の検索流入と英語ページの利用を比較します。インデックス登録、順位、AIの引用は保証しません。
+1. GitHub Pagesの公開元とActionsの状態を確認し、独自ドメインを `chilllabo.tokyo` に設定する。DNSによる所有確認を求められた場合は、表示されたTXTをXserverへ追加する。
+2. リポジトリのActions変数を `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` に設定する。workflowは既に `vars.SITE_ORIGIN` / `vars.SITE_INDEXABLE` を参照する構成。**現在は変数未設定なので、未設定のままならGitHub確認用origin・noindexで生成される。**
+3. workflowを実行し、本番用 `_site/` が配信されたことを確認する。ローカルの `build:production` だけではActionsの設定は変わらない。
+4. Xserver側で、確認したメール設定を保ちながらWeb用のapex／wwwレコードをPagesの案内に合わせて変更する。既存AAAA等が別のWeb配信先を残さないかも確認する。具体的なPages向け値は切替時の設定画面・公式案内で照合する。
+5. 権威DNSと外部からの名前解決、Pagesのドメイン判定・証明書発行を確認する。証明書が利用可能になってからHTTPS強制を有効にし、apex／wwwの実際の遷移を検証する。DNS保存直後を伝播・HTTPS完了とは扱わない。
 
-現在、外部解析サービスへの送信はありません。GA4／GTM導入を今回の必須作業とはせず、導入する場合に計測項目・取得情報・プライバシー表示を別途決めます。リンククリックと予約確認・来店を分け、DM本文や私的メモを解析に送らない方針を維持します。
+本番ドメイン設定・リポジトリ変数・DNS・HTTPSの各段階を個別に記録します。現在はいずれも切替完了を報告できる段階ではありません。
 
-現時点で実機iPhone、検索順位、AIによる引用、予約・売上への効果は未検証です。Chrome QAと静的検査の実施結果を、これらの代わりの証拠にしません。
+## 4. 公開後の確認
+
+- 本番 `/`・`/en/` の応答と表示、証明書、canonical・相互hreflang・robots・sitemapを配信された内容で確認する。BarOrPub構造化データと日英本文の店舗情報を一致させる。
+- 4経路の互換案内、旧アンカー、存在しない記事のHTTP 404を確認する。JavaScript無効時の移動と可視リンクも確認する。
+- 画像・フォントが本番配下から取得でき、旧WordPressへの通信が不要なことを確認する。メニュー、料理の展開、予約文コピー、言語切替、固定CTA、外部サイトから戻る操作を日英で確認する。
+- 通常予約は[Instagram公式プロフィール](https://www.instagram.com/CHILLLABOTOKYO/)、コースは[TableCheck日本語入口](https://www.tablecheck.com/ja/chilllabo-tokyo)、道順はMaps、電話は `tel:+818087008528`。英語ページはコースの日本語詳細へ進むことを明記する。クリックやDM表示を予約成立とは扱わない。
+- 利用中のメールがある場合は、承認された方法で実際の送受信も確認する。Web表示の成功だけでメール維持を完了扱いにしない。
+- Search Consoleで本番sitemap・取得・インデックス・正規URLを確認する。検索順位・AIの引用・予約／売上への効果は別途計測する。
+
+Chromeのモバイル幅QAと実機iPhone Safariは別です。実機iPhone、検索順位、AI引用、予約成立・売上への効果は未検証。架空のレビュー・評価点は使わず、口コミはGoogle Mapsへ案内します。GA4/GTM等への送信設定はなく、解析導入を済ませたとは報告しません。
+
+## 5. 他サイトとの接続は別途
+
+Chill LaboからSATトップ、PLAYGROUNDの香り・米への出発リンクは実装済みです。他サイト側のChill Laboへの帰り道、PLAYGROUNDのSATリンク正式ドメイン統一は、このリポジトリでは変更していません。
+
+1Fは準備中を維持します。開業・在庫・販売価格、第三の酒の未公開FIELD記録は推測して有効化しません。

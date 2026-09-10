@@ -2,7 +2,7 @@
 
 実写を中心にした日英の静的サイト。2Fの飲み比べ・料金・予約を入口に、料理付きコース、準備中の1F Bottle Shop、SAKE ART TOKYO、FERMENTATION PLAYGROUNDへつなぎます。
 
-GitHub Pagesの確認用URLは `https://toraikura.github.io/chill-labo-next/`。コードの実装状態と、Actionsでのデプロイ成功・公開画面の確認は別です。既存ドメイン `chilllabo.tokyo`、WordPress、お名前.comのDNSは今回変更していません。
+GitHub Pagesの確認用URLは `https://toraikura.github.io/chill-labo-next/`。本番移行は許可済みで、現在はXserverへのログイン待ちです。`chilllabo.tokyo` のDNS、Pagesの独自ドメイン設定、HTTPSの切替は未実施。本番向けローカル生成と静的検査のPASSを、本番公開の完了とは扱いません。
 
 ## 編集とビルド
 
@@ -14,12 +14,14 @@ npm run check
 npm run package
 ```
 
-- `scripts/build.mjs`：日英共通の本文・リンク・メタ情報の編集元。`index.html`、`en/index.html`、`404.html`、`robots.txt`、`sitemap.xml`を生成します。生成HTMLだけの手修正は次のビルドで失われます。
+- `scripts/build.mjs`：日英共通の本文・リンク・メタ情報の編集元。`index.html`、`en/index.html`、`404.html`、`robots.txt`、`sitemap.xml`と旧URLの互換案内を生成します。生成HTMLだけの手修正は次のビルドで失われます。
+- `scripts/build-production.mjs`：本番ドメインと検索許可を指定するローカル生成用入口。`npm run build:production` で実行でき、DNSやPagesの設定は変更しません。
+- `scripts/legacy.mjs`：旧英語・旧案内ページなど4経路の静的互換ページを生成します。HTTP 301転送ではありません。
 - `assets/css/styles.css`：レイアウト・配色・レスポンシブ表示。
 - `assets/js/site.js`：メニュー、閲覧位置を引き継ぐ言語切替、予約文のコピー、スマホ固定CTA。
 - `assets/images/`、`assets/fonts/`：同じサイトから配信する画像・フォント。提供実写とSATラベルをローカルWebPで使用し、WordPressの画像URLへの依存は解消しています。
-- `scripts/check.mjs`：日英・H1・価格・構造化データ・アンカー・ローカル素材などの静的検査。
-- `scripts/package.mjs`：公開ファイルだけを `_site/` に集約。既存の `_site/` は作り直します。
+- `scripts/check.mjs`：日英・H1・価格・構造化データ・アンカー・ローカル素材・旧URL・本番検索設定などの静的検査。
+- `scripts/package.mjs`：互換ページを含む公開ファイルだけを `_site/` に集約。既存の `_site/` は作り直します。
 
 ローカル表示はビルド後に次を実行し、`http://localhost:8080/` と `http://localhost:8080/en/` を開きます。
 
@@ -50,10 +52,33 @@ python3 -m http.server 8080
 
 GitHubのプロジェクト配下の `robots.txt` を、ドメインルートのクローラー制御と同一視しません。確認用公開の検索除外はHTMLの `noindex` で示します。GoogleやAIサービスの到達・掲載・引用を確認したという意味ではありません。
 
-`.github/workflows/pages.yml` はmainへのpush／手動実行で、Node 22によるbuild・check・packageの後に `_site/` をGitHub Pagesへ配信します。現在のworkflowは上記既定値を使用。本番ドメインへ移す際はローカルの環境変数だけでなく、workflowのビルド環境も変更します。[移行手順](GO_LIVE.md)を参照してください。
+`.github/workflows/pages.yml` はmainへのpush／手動実行で、Node 22によるbuild・check・packageの後に `_site/` をGitHub Pagesへ配信します。ビルドstepはGitHub Actionsのリポジトリ変数 `SITE_ORIGIN` / `SITE_INDEXABLE` を参照し、未設定なら上記の確認用設定を使います。現在、リポジトリ変数は未設定です。
+
+本番用のローカル確認は次のとおりです。Actions側の変数設定やドメイン切替とは別の操作です。
+
+```sh
+npm run build:production
+npm run check
+npm run package
+```
+
+本番切替時にはリポジトリ変数を `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` に設定して再デプロイします。GitHub確認用originのまま検索許可する指定はビルド側で拒否します。
+
+## 旧URLと本番移行の保留点
+
+| 旧経路 | 互換案内先 |
+|---|---|
+| `/sakebar_chilllaboakasaka` | `/en/` |
+| `/archives/129` | `/` |
+| `/archives/132` | `/en/` |
+| `/page/2` | `/` |
+
+互換ページはcanonical・可視リンク・JavaScriptによる移動を備え、JavaScript無効時は即時meta refreshで移動します。既知の旧アンカーもJavaScriptで対応付けます。その他の旧記事には対応ページを作らず、通常の404を返す方針です。GitHub Pages単体の静的案内をHTTP 301と呼びません。
+
+ドメイン登録はお名前.comですが、権威DNSは `ns1.xserver.jp`〜`ns5.xserver.jp` です。**再開先はXserverのDNS・メール設定確認**です。現在のMXは `chilllabo.tokyo` 自体を参照するため、Web用Aレコードだけの変更でもメール配送先が変わります。NSをお名前.comへ移して未確認のメール設定を落とさず、先に利用中のメールとMX/SPF等を確認します。具体的な確認値と切替順は[移行手順](GO_LIVE.md)を参照してください。
 
 ## 検証の範囲
 
-静的検査はブラウザー・実機の操作確認ではありません。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
+本番向けローカル生成、indexability・メタ情報・sitemap・旧URLの静的検査はPASS済みです。静的検査はブラウザー・実機の操作確認ではありません。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
 
 架空のレビューや評価点は載せず、口コミはGoogle Mapsへ案内します。解析SDK・GA4・GTMは読み込んでいません。既存の `window.dataLayer` がある場合だけ外部リンククリックを追加する補助処理があり、現在のサイト自体には解析先への送信設定がありません。
