@@ -1,6 +1,6 @@
-# chilllabo.tokyo 本番移行・再開手順
+# chilllabo.tokyo 本番公開・運用記録
 
-2026-09-11 03:19頃 JST時点。本番切替はユーザー承認済みで、**設定保存・Actions配信・DNS確認は成功し、証明書は `state:new`（発行要求開始待ち）へ進みました**。[commit 9a829b5](https://github.com/Toraikura/chill-labo-next/commit/9a829b5)の[Actions 34503678380](https://github.com/Toraikura/chill-labo-next/actions/runs/34503678380)は成功しています。証明書が利用可能になるかを確認するところから再開します。本番HTTPS公開はまだ完了扱いにしません。
+2026-09-11 08:57 JST、**日英サイトの本番HTTPS公開と、HTTP／wwwからの正規URLへの転送を確認しました。** 通常のDNS解決と証明書検証を使って実測しています。本番HTML・素材の確認対象は[commit 23934ff](https://github.com/Toraikura/chill-labo-next/commit/23934ff)、[Actions 34514025089](https://github.com/Toraikura/chill-labo-next/actions/runs/34514025089)の配信です。最終確認の詳細と、実機・検索等の未検証範囲を以下に記録します。
 
 ## 1. 設定済みの内容と、現在の反映状況
 
@@ -28,14 +28,17 @@ Xserverのサーバー管理画面で認証し、サーバー情報 `sv7415.xser
 | Pages独自ドメイン | `cname=chilllabo.tokyo` 設定済み |
 | DNSの観測 | 通常DNSの接続先も新しいGitHub側へ切替済み。以前の新旧混在を最新状態として扱わない |
 | GitHubドメイン判定 | 03:00・03:18 JST、apex／wwwとも `is_valid=true`、`is_served_by_pages=true`、`is_https_eligible=true`、`reason=null` |
-| Pages証明書／HTTPS強制 | 03:19頃に初めて `null` → `state:new`、`domains=[chilllabo.tokyo]`。HTTPS強制は `false`。まだ証明書の利用可能状態ではない |
-| 直近のTLS検証 | 03:18 JST、SANのホスト名不一致で失敗。`state:new` への変化をTLS成功とは扱わない |
+| Pages証明書／TLS | 08:47 JST、通常DNS＋証明書検証ありのTLSで日英200。SANは `chilllabo.tokyo` と `www.chilllabo.tokyo` に一致 |
+| HTTPS強制 | 08:50頃、`https_enforced=true` を保存・読戻し済み |
+| 確認済みの転送 | `https://www.chilllabo.tokyo/` → `https://chilllabo.tokyo/` は301。HTTP `/en/` → HTTPSも301 |
+| HTTPルート | 08:57:35 JST、`http://chilllabo.tokyo/` は301 → `https://chilllabo.tokyo/` → 200。取得時Age 0 |
+| 自動化 `chill-labo` | `PAUSED`。公開確認完了後も停止を維持 |
 
-GitHubへの直接HTTPリクエスト（接続先 `185.199.108.153`、Host `chilllabo.tokyo`）では日英・robots・sitemap・4互換ページ・15素材の23 URLが200、本番bundleと全バイト一致しました。廃止記事と架空URLはcustom404本文付きのHTTP404です。DNSを経由した本番HTTPSの完了とは別の確認です。
+通常DNSと検証ありTLSで取得した日英HTML・全15素材は本番bundleと全バイト一致しました。robots・sitemap・canonical・hreflang、旧4経路の静的互換、廃止4記事のHTTP 404、SAT・PLAYGROUND・AROMA LABO・RICE LINEAGEへの到達も確認済みです。08:57:35 JSTにはHTTPルートの古い200キャッシュも解消し、HTTPSへの301転送を確認しました。
 
 Remove／再登録は、DNS反映前の01:51頃に1回、DNS判定成功後も18分以上発行が始まらなかった新しい観測を根拠に03:18に1回、通算2回実施しました。03:18の操作後も `cname=chilllabo.tokyo` とworkflowを維持し、DNS・メール設定は変更していません。以前の `NotServedByPagesError`／`InvalidDNSError` は、03:00・03:18の正常判定で解消を確認した過去の状態です。
 
-03:19頃の証明書descriptionは `This domain was recently added. The certificate request process will begin shortly.` です。発行要求開始待ちに進んだことを確認した段階で、証明書発行やTLS成功の証拠ではありません。以後は待機時間だけを理由にRemove／再登録を繰り返さず、証明書の状態を確認します。ログイン・DNS・本番変数設定からやり直す必要はありません。
+証明書は03:19頃に `null` から `state:new` へ進み、当時のdescriptionは `This domain was recently added. The certificate request process will begin shortly.` でした。03:18のSAN不一致と03:19の発行要求開始待ちは過去の状態で、08:47のTLS成功により解消を確認しています。Remove／再登録は追加で行わず、ログイン・DNS・本番変数・証明書設定からやり直しません。
 
 ## 2. 本番用ファイルと旧URL対応を確認
 
@@ -60,32 +63,43 @@ npm run package
 
 **これらは静的互換ページで、HTTP 301ではありません。** GitHub Pages単体では任意の旧URLに真の301転送を設定できません。旧記事 `/archives/689`、`/archives/709`、`/archives/738`、`/archives/428` 等には同等の新記事がないため、通常の404とします。無関係な記事をTOPへ一律転送しません。
 
-画像・フォントは同じサイト内から配信し、旧WordPress画像への依存は解消済みです。旧4時間プランは復活させず、通常1時間3,300円／自動延長1時間1,100円と、料理付き2時間6,600円／3時間8,800円を分けます。価格は各1人税込。公開前に営業時間・住所・電話・コース条件も照合します。
+画像・フォントは同じサイト内から配信し、旧WordPress画像への依存は解消済みです。旧4時間プランは復活させず、通常1時間3,300円／自動延長1時間1,100円と、料理付き2時間6,600円／3時間8,800円を分けています。価格は各1人税込。今後の店舗情報更新でも営業時間・住所・電話・コース条件を日英で揃えます。
 
 本番用bundleとDNS観測記録はリポジトリ外の作業出力にも準備済みです。別環境では上記コマンドから生成できるため、特定のローカル出力パスを前提にしません。
 
-## 3. 証明書発行の確認から再開する
+## 3. 公開完了の実測
 
-1. Pagesの証明書状態を読み取り、03:19頃の `state:new` から発行・利用可能状態へ進むか確認する。DNS判定が引き続き正常なら、NS・A・MX・SPFを変更し直さず、Remove／再登録も繰り返さない。新しいエラーが出た場合だけ、その根拠から調査する。
-2. 証明書が利用可能になったら、TLS検証を省略せずapex／wwwへ接続し、HTTPS強制を有効にする。HTTPからHTTPSへの転送と、wwwの実際の遷移先を確認する。
-3. 本番 `/`・`/en/` の応答、配信内容と主要操作、旧URL・404を下記の範囲で確認する。
-4. 確認時刻・配信コミット・DNS／TLS／HTTPS強制の結果を追記する。未確認の項目を残したまま全項目完了とはしない。
+2026-09-11 08:57:35 JST、通常DNSと有効なTLS検証で次の転送を確認しました。IP固定や証明書検証の無効化は使用していません。
+
+| 入口 | 確認した遷移 |
+|---|---|
+| `http://chilllabo.tokyo/` | 301 → `https://chilllabo.tokyo/` → 200 |
+| `http://chilllabo.tokyo/en/` | 301 → `https://chilllabo.tokyo/en/` → 200 |
+| `http://www.chilllabo.tokyo/` | 301 → HTTP apex → 301 → HTTPS apex → 200 |
+| `https://www.chilllabo.tokyo/` | 301 → HTTPS apex → 200 |
+| `https://www.chilllabo.tokyo/en/` | 301 → HTTPS apex `/en/` → 200 |
+| 従来のGitHub PagesプロジェクトURL | 301 → `https://chilllabo.tokyo/` → 200 |
+
+HTTPS強制保存直後はHTTPルートだけ旧200応答が最大600秒の配信キャッシュに残りました。設定の保存だけで完了とせず、実際に301へ切り替わったことを確認しました。証明書は再登録後長時間 `new` のままでしたが、追加のDNS変更や3回目の再登録をせず発行済みに進みました。発行が遅れた原因は未特定です。
+
+ブラウザーで旧英語URL `sakebar_chilllaboakasaka#prices` から `/en/#pricing`、旧案内 `/archives/129/` から日本語トップへの実移動も確認しました。これら旧コンテンツの案内は、HTTPのドメイン正規化転送とは別の静的互換処理です。
+
+自動確認 `chill-labo` は `PAUSED` のまま停止を維持します。証明書発行待ちの自動監視を再開する必要はありません。
 
 再デプロイが必要な場合も、設定済みの本番用リポジトリ変数を維持します。環境変数なしのローカル `npm run build` は従来のPages確認用origin・noindexになるため、ローカル確認と本番配信を区別してください。
 
-## 4. 公開後の確認
+## 4. 確認済みの操作と、検証の範囲
 
-- 本番 `/`・`/en/` の応答と表示、証明書、canonical・相互hreflang・robots・sitemapを配信された内容で確認する。BarOrPub構造化データと日英本文の店舗情報を一致させる。
-- 4経路の互換案内、旧アンカー、存在しない記事のHTTP 404を確認する。JavaScript無効時の移動と可視リンクも確認する。
-- 画像・フォントが本番配下から取得でき、旧WordPressへの通信が不要なことを確認する。メニュー、料理の展開、予約文コピー、言語切替、固定CTA、外部サイトから戻る操作を日英で確認する。
-- 通常予約は[Instagram公式プロフィール](https://www.instagram.com/CHILLLABOTOKYO/)、コースは[TableCheck日本語入口](https://www.tablecheck.com/ja/chilllabo-tokyo)、道順はMaps、電話は `tel:+818087008528`。英語ページはコースの日本語詳細へ進むことを明記する。クリックやDM表示を予約成立とは扱わない。
-- メールの実送受信は未検証。利用中のメールがある場合は承認された方法で確認し、Web表示の成功だけでメール維持を完了扱いにしない。
-- Search Consoleで本番sitemap・取得・インデックス・正規URLを確認する。検索順位・AIの引用・予約／売上への効果は別途計測する。
+実ブラウザーでは390px幅の日英トップ表示、画像5枚の読み込み、閲覧位置を引き継ぐ日英切替、メニュー開閉とアクセスへの移動、2時間コースの料理details展開、英語予約文コピーの成功表示を確認しました。IABの `clipboard.readText` は空だったため、クリップボード内容の読戻し成功までは主張しません。
+
+通常予約は[Instagram公式プロフィール](https://www.instagram.com/CHILLLABOTOKYO/)、コースは[TableCheck日本語入口](https://www.tablecheck.com/ja/chilllabo-tokyo)、道順はMaps、電話は `tel:+818087008528` です。英語ページはコースの日本語詳細へ進むことを明記しています。クリックやDM表示を予約成立とは扱いません。
+
+メールの実送受信は未検証です。Search Consoleでの取得・インデックス・正規URL、検索順位・AIの引用・予約／売上への効果は別途確認・計測します。
 
 Chromeのモバイル幅QAと実機iPhone Safariは別です。実機iPhone、検索順位、AI引用、予約成立・売上への効果は未検証。架空のレビュー・評価点は使わず、口コミはGoogle Mapsへ案内します。GA4/GTM等への送信設定はなく、解析導入を済ませたとは報告しません。
 
 ## 5. 他サイトとの接続は別途
 
-Chill LaboからSATトップ、PLAYGROUNDの `/aroma-lab/`・酒米への出発リンクは実装済みです。他サイト側のChill Laboへの帰り道、PLAYGROUNDのSATリンク正式ドメイン統一は、このリポジトリでは変更していません。
+Chill LaboからSATトップ、PLAYGROUNDの `/aroma-lab/`・酒米への出発リンクは実装済みで、各遷移先への到達も確認しました。他サイト側のChill Laboへの帰り道、PLAYGROUNDのSATリンク正式ドメイン統一は、このリポジトリでは変更していません。
 
 1Fは準備中を維持します。開業・在庫・販売価格、第三の酒の未公開FIELD記録は推測して有効化しません。
