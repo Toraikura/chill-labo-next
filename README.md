@@ -4,7 +4,7 @@
 
 本番の配信先は `https://chilllabo.tokyo/`。2026-09-11 JST時点で、ユーザー承認のもと本番用Actions変数、Pagesの独自ドメイン、XserverのDNS設定を保存・再確認済みです。[commit 9a829b5](https://github.com/Toraikura/chill-labo-next/commit/9a829b5)の[Actions 34503678380](https://github.com/Toraikura/chill-labo-next/actions/runs/34503678380)は成功しています。
 
-**現在はDNS反映とPages証明書の発行待ちです。** 権威NS間で旧情報が残り、Pagesの証明書は未発行、HTTPS強制は未有効です。設定保存・Actions成功を、本番HTTPS公開の完了とは扱いません。次の確認箇所は[GO_LIVE.md](GO_LIVE.md)にまとめています。従来のPages URLは `https://toraikura.github.io/chill-labo-next/` です。
+**現在はDNS確認が成功し、Pages証明書の発行要求開始待ちです。** 2026-09-11 03:00・03:18 JSTのGitHub判定はapex／wwwとも正常で、通常DNSの接続先もGitHubへ切り替わりました。03:18の独自ドメイン再登録後、03:19頃に証明書が初めて `null` から `state:new` へ進みました。証明書はまだ利用可能ではなく、HTTPS強制も未有効です。再開点は発行状況の確認と、発行後のHTTPS強制・配信確認です。[GO_LIVE.md](GO_LIVE.md)を参照してください。本番HTTPS公開はまだ完了扱いにしません。従来のPages URLは `https://toraikura.github.io/chill-labo-next/` です。
 
 ## 編集とビルド
 
@@ -66,7 +66,7 @@ npm run package
 
 再デプロイ時も本番用のリポジトリ変数を維持します。GitHub確認用originのまま検索許可する指定はビルド側で拒否します。
 
-## 旧URLとDNS・HTTPSの反映待ち
+## 旧URLとHTTPS発行待ち
 
 | 旧経路 | 互換案内先 |
 |---|---|
@@ -79,10 +79,10 @@ npm run package
 
 ドメイン登録はお名前.com、権威DNSは維持した `ns1.xserver.jp`〜`ns5.xserver.jp` です。Xserver認証とサーバー情報の確認後、apexのAをPagesの4アドレス、wwwを `toraikura.github.io` のCNAMEへ変更しました。MXは `sv7415.xserver.jp` へ切り替え、SPFからWeb用apexのA参照を除去しています。設定画面の保存後読戻しは完了し、NS・既存wildcard A・他ドメインは維持しています。
 
-再開時は設定を重ねて変更せず、権威NS／外部DNSの反映、Pagesの証明書発行を確認します。証明書が利用可能になったらHTTPS強制と本番URLを確認してください。DNSの正確な設定値・観測状態・残りの手順は[GO_LIVE.md](GO_LIVE.md)を参照してください。
+DNS確認は成功しています。再開時は設定を重ねて変更せず、Pagesの証明書発行を確認します。証明書が利用可能になったらHTTPS強制と本番URLを確認してください。Remove／再登録は通算2回実施済みで、待機時間だけを理由に繰り返しません。正確な設定値・観測時刻・残りの手順は[GO_LIVE.md](GO_LIVE.md)を参照してください。
 
 ## 検証の範囲
 
-本番向けローカル生成、indexability・メタ情報・sitemap・旧URLの静的検査はPASS済みで、本番設定のActionsも成功しています。本番ドメインのDNS反映・TLS・配信内容の最終確認は継続中です。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
+本番向けローカル生成、indexability・メタ情報・sitemap・旧URLの静的検査はPASS済みで、本番設定のActionsも成功しています。DNSとGitHubのドメイン判定は成功し、残りはTLS・HTTPS強制・HTTPSでの配信確認です。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
 
 架空のレビューや評価点は載せず、口コミはGoogle Mapsへ案内します。解析SDK・GA4・GTMは読み込んでいません。既存の `window.dataLayer` がある場合だけ外部リンククリックを追加する補助処理があり、現在のサイト自体には解析先への送信設定がありません。

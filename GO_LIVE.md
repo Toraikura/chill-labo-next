@@ -1,6 +1,6 @@
 # chilllabo.tokyo 本番移行・再開手順
 
-2026-09-11 JST時点。本番切替はユーザー承認済みで、**設定保存とActions配信は完了、DNS反映とPages証明書の発行は確認中**です。[commit 9a829b5](https://github.com/Toraikura/chill-labo-next/commit/9a829b5)の[Actions 34503678380](https://github.com/Toraikura/chill-labo-next/actions/runs/34503678380)は成功しています。本番HTTPS公開の完了は、以下の反映待ちが解消してから記録します。
+2026-09-11 03:19頃 JST時点。本番切替はユーザー承認済みで、**設定保存・Actions配信・DNS確認は成功し、証明書は `state:new`（発行要求開始待ち）へ進みました**。[commit 9a829b5](https://github.com/Toraikura/chill-labo-next/commit/9a829b5)の[Actions 34503678380](https://github.com/Toraikura/chill-labo-next/actions/runs/34503678380)は成功しています。証明書が利用可能になるかを確認するところから再開します。本番HTTPS公開はまだ完了扱いにしません。
 
 ## 1. 設定済みの内容と、現在の反映状況
 
@@ -26,14 +26,16 @@ Xserverのサーバー管理画面で認証し、サーバー情報 `sv7415.xser
 |---|---|
 | Actionsリポジトリ変数 | `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` 設定済み |
 | Pages独自ドメイン | `cname=chilllabo.tokyo` 設定済み |
-| DNSの観測 | ns1/ns2へのTCP・非再帰問い合わせで新しいA・MXを確認。Google公開DNSでは新旧が混在し、Cloudflare公開DNSは新しいA・wwwを返す |
-| Pages証明書／HTTPS強制 | 証明書 `null`、HTTPS強制 `false`。発行・有効化待ち |
+| DNSの観測 | 通常DNSの接続先も新しいGitHub側へ切替済み。以前の新旧混在を最新状態として扱わない |
+| GitHubドメイン判定 | 03:00・03:18 JST、apex／wwwとも `is_valid=true`、`is_served_by_pages=true`、`is_https_eligible=true`、`reason=null` |
+| Pages証明書／HTTPS強制 | 03:19頃に初めて `null` → `state:new`、`domains=[chilllabo.tokyo]`。HTTPS強制は `false`。まだ証明書の利用可能状態ではない |
+| 直近のTLS検証 | 03:18 JST、SANのホスト名不一致で失敗。`state:new` への変化をTLS成功とは扱わない |
 
 GitHubへの直接HTTPリクエスト（接続先 `185.199.108.153`、Host `chilllabo.tokyo`）では日英・robots・sitemap・4互換ページ・15素材の23 URLが200、本番bundleと全バイト一致しました。廃止記事と架空URLはcustom404本文付きのHTTP404です。DNSを経由した本番HTTPSの完了とは別の確認です。
 
-DNS反映後も発行が始まらなかったため、GitHub公式手順に沿って独自ドメインを一度Remove／再登録しました。以後のDNSチェックには `NotServedByPagesError`、`InvalidDNSError` が現れています。Google公開DNSの新旧応答は末尾ドットの有無で固定されず、応答キャッシュの差が残っています。DNS設定を追加変更する根拠とはせず、伝播とGitHub側検証を継続します。
+Remove／再登録は、DNS反映前の01:51頃に1回、DNS判定成功後も18分以上発行が始まらなかった新しい観測を根拠に03:18に1回、通算2回実施しました。03:18の操作後も `cname=chilllabo.tokyo` とworkflowを維持し、DNS・メール設定は変更していません。以前の `NotServedByPagesError`／`InvalidDNSError` は、03:00・03:18の正常判定で解消を確認した過去の状態です。
 
-上表はこの時点の記録です。設定画面で新値が読めることと、すべてのDNSサーバーへ反映されたことは別です。再開時はログインや変数設定からやり直さず、DNSと証明書の状態確認から進めます。
+03:19頃の証明書descriptionは `This domain was recently added. The certificate request process will begin shortly.` です。発行要求開始待ちに進んだことを確認した段階で、証明書発行やTLS成功の証拠ではありません。以後は待機時間だけを理由にRemove／再登録を繰り返さず、証明書の状態を確認します。ログイン・DNS・本番変数設定からやり直す必要はありません。
 
 ## 2. 本番用ファイルと旧URL対応を確認
 
@@ -62,10 +64,10 @@ npm run package
 
 本番用bundleとDNS観測記録はリポジトリ外の作業出力にも準備済みです。別環境では上記コマンドから生成できるため、特定のローカル出力パスを前提にしません。
 
-## 3. DNS反映・証明書発行の確認から再開する
+## 3. 証明書発行の確認から再開する
 
-1. Xserverの5つの権威NSと外部DNSで、apex A・www CNAME・MX・SPFを保存値と照合する。旧情報が残る間は伝播状況を記録して再確認する。待機だけを理由にNSやメール設定を変更し直さない。
-2. Pagesの独自ドメイン判定・証明書発行を確認し、証明書が利用可能になってからHTTPS強制を有効にする。apex／wwwのHTTPSと実際の遷移先を確認する。
+1. Pagesの証明書状態を読み取り、03:19頃の `state:new` から発行・利用可能状態へ進むか確認する。DNS判定が引き続き正常なら、NS・A・MX・SPFを変更し直さず、Remove／再登録も繰り返さない。新しいエラーが出た場合だけ、その根拠から調査する。
+2. 証明書が利用可能になったら、TLS検証を省略せずapex／wwwへ接続し、HTTPS強制を有効にする。HTTPからHTTPSへの転送と、wwwの実際の遷移先を確認する。
 3. 本番 `/`・`/en/` の応答、配信内容と主要操作、旧URL・404を下記の範囲で確認する。
 4. 確認時刻・配信コミット・DNS／TLS／HTTPS強制の結果を追記する。未確認の項目を残したまま全項目完了とはしない。
 
