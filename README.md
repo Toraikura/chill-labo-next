@@ -2,7 +2,9 @@
 
 実写を中心にした日英の静的サイト。2Fの飲み比べ・料金・予約を入口に、料理付きコース、準備中の1F Bottle Shop、SAKE ART TOKYO、FERMENTATION PLAYGROUNDへつなぎます。
 
-GitHub Pagesの確認用URLは `https://toraikura.github.io/chill-labo-next/`。本番移行は許可済みで、現在はXserverへのログイン待ちです。`chilllabo.tokyo` のDNS、Pagesの独自ドメイン設定、HTTPSの切替は未実施。本番向けローカル生成と静的検査のPASSを、本番公開の完了とは扱いません。
+本番の配信先は `https://chilllabo.tokyo/`。2026-09-11 JST時点で、ユーザー承認のもと本番用Actions変数、Pagesの独自ドメイン、XserverのDNS設定を保存・再確認済みです。[commit 9a829b5](https://github.com/Toraikura/chill-labo-next/commit/9a829b5)の[Actions 34503678380](https://github.com/Toraikura/chill-labo-next/actions/runs/34503678380)は成功しています。
+
+**現在はDNS反映とPages証明書の発行待ちです。** 権威NS間で旧情報が残り、Pagesの証明書は未発行、HTTPS強制は未有効です。設定保存・Actions成功を、本番HTTPS公開の完了とは扱いません。次の確認箇所は[GO_LIVE.md](GO_LIVE.md)にまとめています。従来のPages URLは `https://toraikura.github.io/chill-labo-next/` です。
 
 ## 編集とビルド
 
@@ -40,7 +42,7 @@ python3 -m http.server 8080
 
 ## 検索と配信設定
 
-既定ビルドはGitHub Pages確認用です。
+環境変数なしのローカルビルドはGitHub Pages確認用です。本番のActionsは、設定済みのリポジトリ変数を使用します。
 
 | 設定 | 既定値／動作 |
 |---|---|
@@ -52,7 +54,7 @@ python3 -m http.server 8080
 
 GitHubのプロジェクト配下の `robots.txt` を、ドメインルートのクローラー制御と同一視しません。確認用公開の検索除外はHTMLの `noindex` で示します。GoogleやAIサービスの到達・掲載・引用を確認したという意味ではありません。
 
-`.github/workflows/pages.yml` はmainへのpush／手動実行で、Node 22によるbuild・check・packageの後に `_site/` をGitHub Pagesへ配信します。ビルドstepはGitHub Actionsのリポジトリ変数 `SITE_ORIGIN` / `SITE_INDEXABLE` を参照し、未設定なら上記の確認用設定を使います。現在、リポジトリ変数は未設定です。
+`.github/workflows/pages.yml` はmainへのpush／手動実行で、Node 22によるbuild・check・packageの後に `_site/` をGitHub Pagesへ配信します。リポジトリ変数は `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` に設定済み。Pagesの独自ドメインも `chilllabo.tokyo` に設定済みです。変数が未設定の場合に限り、上記の確認用設定へ戻ります。
 
 本番用のローカル確認は次のとおりです。Actions側の変数設定やドメイン切替とは別の操作です。
 
@@ -62,9 +64,9 @@ npm run check
 npm run package
 ```
 
-本番切替時にはリポジトリ変数を `SITE_ORIGIN=https://chilllabo.tokyo`、`SITE_INDEXABLE=true` に設定して再デプロイします。GitHub確認用originのまま検索許可する指定はビルド側で拒否します。
+再デプロイ時も本番用のリポジトリ変数を維持します。GitHub確認用originのまま検索許可する指定はビルド側で拒否します。
 
-## 旧URLと本番移行の保留点
+## 旧URLとDNS・HTTPSの反映待ち
 
 | 旧経路 | 互換案内先 |
 |---|---|
@@ -75,10 +77,12 @@ npm run package
 
 互換ページはcanonical・可視リンク・JavaScriptによる移動を備え、JavaScript無効時は即時meta refreshで移動します。既知の旧アンカーもJavaScriptで対応付けます。その他の旧記事には対応ページを作らず、通常の404を返す方針です。GitHub Pages単体の静的案内をHTTP 301と呼びません。
 
-ドメイン登録はお名前.comですが、権威DNSは `ns1.xserver.jp`〜`ns5.xserver.jp` です。**再開先はXserverのDNS・メール設定確認**です。現在のMXは `chilllabo.tokyo` 自体を参照するため、Web用Aレコードだけの変更でもメール配送先が変わります。NSをお名前.comへ移して未確認のメール設定を落とさず、先に利用中のメールとMX/SPF等を確認します。具体的な確認値と切替順は[移行手順](GO_LIVE.md)を参照してください。
+ドメイン登録はお名前.com、権威DNSは維持した `ns1.xserver.jp`〜`ns5.xserver.jp` です。Xserver認証とサーバー情報の確認後、apexのAをPagesの4アドレス、wwwを `toraikura.github.io` のCNAMEへ変更しました。MXは `sv7415.xserver.jp` へ切り替え、SPFからWeb用apexのA参照を除去しています。設定画面の保存後読戻しは完了し、NS・既存wildcard A・他ドメインは維持しています。
+
+再開時は設定を重ねて変更せず、権威NS／外部DNSの反映、Pagesの証明書発行を確認します。証明書が利用可能になったらHTTPS強制と本番URLを確認してください。DNSの正確な設定値・観測状態・残りの手順は[GO_LIVE.md](GO_LIVE.md)を参照してください。
 
 ## 検証の範囲
 
-本番向けローカル生成、indexability・メタ情報・sitemap・旧URLの静的検査はPASS済みです。静的検査はブラウザー・実機の操作確認ではありません。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
+本番向けローカル生成、indexability・メタ情報・sitemap・旧URLの静的検査はPASS済みで、本番設定のActionsも成功しています。本番ドメインのDNS反映・TLS・配信内容の最終確認は継続中です。ChromeでのQA・公開URLの確認は実行時の結果を別途記録します。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
 
 架空のレビューや評価点は載せず、口コミはGoogle Mapsへ案内します。解析SDK・GA4・GTMは読み込んでいません。既存の `window.dataLayer` がある場合だけ外部リンククリックを追加する補助処理があり、現在のサイト自体には解析先への送信設定がありません。
