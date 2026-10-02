@@ -50,6 +50,7 @@ python3 -m http.server 8080
 |---|---|
 | `SITE_ORIGIN` | `https://toraikura.github.io/chill-labo-next` |
 | `SITE_INDEXABLE` | 未指定時は検索対象外。日英HTMLに `noindex,follow` |
+| `GA_MEASUREMENT_ID` | 本番 `https://chilllabo.tokyo` だけで使用。未指定時は `G-3QMWK2ND4`。GitHub previewでは送信しない |
 | canonical / hreflang | 設定したoriginから日英の自己参照canonicalと相互の言語URLを生成 |
 | robots.txt | `GPTBot` は `Disallow: /`、その他は `Allow: /`。本番の検索許可時のみSitemap行を追加 |
 | sitemap.xml | 設定したoriginの `/` と `/en/` を生成 |
@@ -89,4 +90,4 @@ DNS・TLS・HTTPS強制と、HTTPルートのキャッシュ更新後の実転�
 
 実ブラウザーでは390px幅の日英表示、画像5枚、閲覧位置を引き継ぐ言語切替、メニュー・アクセス移動、2時間コースの料理展開、英語予約文コピーの成功表示を確認しました。クリップボード内容の読戻し成功は未確認です。HTTPルート `/` のHTTPSへの301転送も実測済みです。実機iPhone、検索順位、AIによる引用、予約成立・売上への効果は未検証です。
 
-架空のレビューや評価点は載せず、口コミはGoogle Mapsへ案内します。解析SDK・GA4・GTMは読み込んでいません。既存の `window.dataLayer` がある場合だけ外部リンククリックを追加する補助処理があり、現在のサイト自体には解析先への送信設定がありません。
+架空のレビューや評価点は載せず、口コミはGoogle Mapsへ案内します。2026-10-02から本番ドメインだけGA4（`G-3QMWK2ND4`）を読み込み、ページ閲覧に加えて、Instagram予約導線・Google Maps・TableCheck・電話・関連サイトなどの `data-track` 付き導線を明示イベントとして送信します。クリックは予約成立や来店完了とは扱いません。GA4導入前のアクセス履歴は遡って復元できません。
