@@ -51,3 +51,28 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify production URLs through Cloudflare
+        if: ${{ vars.SITE_ORIGIN == 'https://chilllabo.tokyo' }}
+        run: |
+          set -euo pipefail
+
+          check_page() {
+            url="$1"
+            marker="$2"
+            tmp="$(mktemp)"
+            code="$(curl --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors --output "$tmp" --write-out '%{http_code}' "$url")"
+            test "$code" = "200"
+            grep -F "$marker" "$tmp" >/dev/null
+            grep -F "G-GL74MVB738" "$tmp" >/dev/null
+            rm -f "$tmp"
+          }
+
+          check_page "https://chilllabo.tokyo/" "ひと口ずつ"
+          check_page "https://chilllabo.tokyo/en/" "One sip at a time"
+          check_page "https://chilllabo.tokyo/story/" "好きな一本を"
+          check_page "https://chilllabo.tokyo/guide/sake-karakuchi/" "日本酒の「辛口」"
+
+          sitemap="$(curl --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors https://chilllabo.tokyo/sitemap.xml)"
+          printf '%s' "$sitemap" | grep -F '<loc>https://chilllabo.tokyo/story/</loc>' >/dev/null
+          printf '%s' "$sitemap" | grep -F '<loc>https://chilllabo.tokyo/guide/sake-karakuchi/</loc>' >/dev/null
