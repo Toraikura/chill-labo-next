@@ -1,0 +1,22 @@
+name: Verify live GA4 tag
+
+on:
+  push:
+    branches: ["setup-ga4-20261002"]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production HTML and GA loader
+        run: |
+          set -euxo pipefail
+          curl -fsSL --retry 3 https://chilllabo.tokyo/ -o /tmp/home.html
+          grep -F 'G-3QMWK2ND4' /tmp/home.html
+          grep -F 'googletagmanager.com/gtag/js?id=G-3QMWK2ND4' /tmp/home.html
+          grep -F 'site.js?v=20261002' /tmp/home.html
+          curl -fsSL --retry 3 'https://www.googletagmanager.com/gtag/js?id=G-3QMWK2ND4' -o /tmp/gtag.js
+          test -s /tmp/gtag.js
