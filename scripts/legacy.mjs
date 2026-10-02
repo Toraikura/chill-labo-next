@@ -2,10 +2,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const legacyRoutes = [
-  ['sakebar_chilllaboakasaka', '/en/'],
-  ['archives/129', '/'],
-  ['archives/132', '/en/'],
-  ['page/2', '/'],
+  ['sakebar_chilllaboakasaka', '/en/', 'en'],
+  ['archives/129', '/', 'ja'],
+  ['archives/132', '/en/', 'en'],
+  ['page/2', '/', 'ja'],
 ];
 
 const legacyHashes = {
@@ -24,17 +24,20 @@ const escapeHtml = value => String(value)
   .replaceAll('<', '&lt;')
   .replaceAll('>', '&gt;');
 
-function renderLegacy(destination) {
+function renderLegacy(destination, lang) {
   const href = escapeHtml(destination);
   const scriptDestination = JSON.stringify(destination).replaceAll('<', '\\u003c');
+  const english = lang === 'en';
+  const title = english ? 'Page moved | Chill Labo Akasaka' : 'ページが移動しました | Chill Labo Akasaka';
   return `<!doctype html>
-<html lang="ja">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,follow">
 <link rel="canonical" href="${href}">
-<title>ページが移動しました | Chill Labo Akasaka</title>
+<meta http-equiv="refresh" content="0;url=${href}">
+<title>${title}</title>
 <script>
 (() => {
   const destination = ${scriptDestination};
@@ -45,7 +48,6 @@ function renderLegacy(destination) {
   window.location.replace(destination + (mappedHash ? '#' + mappedHash : ''));
 })();
 </script>
-<noscript><meta http-equiv="refresh" content="0;url=${href}"></noscript>
 <style>body{font-family:system-ui,sans-serif;line-height:1.7;max-width:40rem;margin:4rem auto;padding:0 1.25rem;color:#302029;background:#faf8f0}a{display:inline-block;padding:.75rem 0;color:inherit;text-underline-offset:.2em}a:focus-visible{outline:2px solid currentColor;outline-offset:4px}</style>
 </head>
 <body>
@@ -70,9 +72,9 @@ export async function buildLegacy({ root, origin }) {
   if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new Error('Legacy page origin must be an HTTPS URL without credentials, query or hash');
   }
-  for (const [route, target] of legacyRoutes) {
+  for (const [route, target, lang] of legacyRoutes) {
     const directory = path.join(root, route);
     await mkdir(directory, { recursive: true });
-    await writeFile(path.join(directory, 'index.html'), renderLegacy(base + target));
+    await writeFile(path.join(directory, 'index.html'), renderLegacy(base + target, lang));
   }
 }
