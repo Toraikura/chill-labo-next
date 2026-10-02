@@ -68,11 +68,15 @@
     mobile.addEventListener('change', updateSticky);
     menu?.addEventListener('toggle', updateSticky);
   }
-  // Optional analytics integration: these are outbound clicks, never completed bookings.
-  // No analytics service, cookies or network tracking is loaded by this site.
+  // Explicit intent events supplement GA4's automatic page-view and outbound-click collection.
+  // These clicks indicate navigation intent only; they are not treated as completed reservations or visits.
+  const sendAnalytics = (eventName, parameters = {}) => {
+    if (typeof window.gtag !== 'function') return;
+    window.gtag('event', eventName, { language: en ? 'en' : 'ja', ...parameters });
+  };
   document.querySelectorAll('[data-track]').forEach(link => {
     link.addEventListener('click', () => {
-      if (Array.isArray(window.dataLayer)) window.dataLayer.push({event: link.dataset.track, language: en ? 'en' : 'ja', destination: link.href});
+      sendAnalytics(link.dataset.track, { link_url: link.href });
     });
   });
 })();
