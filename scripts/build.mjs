@@ -40,8 +40,8 @@ function render(lang) {
   const t = (ja, english) => en ? english : ja;
   const base = en ? '../' : './';
   const canonical = `${origin}/${en ? 'en/' : ''}`;
-  const title = t('赤坂の日本酒バー｜あなたの「好き」を一緒に探す｜Chill Labo', 'Sake Bar in Akasaka, Tokyo | Taste 100+ Sake | Chill Labo');
-  const description = t('日本酒に詳しくなくても大丈夫。少しずつ飲み比べながら、あなたの好きな味をスタッフと一緒に探せる赤坂の日本酒バー。赤坂・赤坂見附駅から徒歩約5分。', 'Taste 100+ sake selections in Akasaka, Tokyo, about 5 minutes from Akasaka and Akasaka-mitsuke stations. First hour ¥3,300 incl. tax. Beginners, solo guests and English speakers welcome.');
+  const title = t('赤坂の日本酒バー｜あなたの「好き」を一緒に探す｜Chill Labo', 'Sake Bar in Akasaka, Tokyo | Find What You Love | Chill Labo');
+  const description = t('日本酒に詳しくなくても大丈夫。少しずつ飲み比べながら、あなたの好きな味をスタッフと一緒に探せる赤坂の日本酒バー。赤坂・赤坂見附駅から徒歩約5分。', 'New to sake? Taste a little at a time and discover the flavors you love together with our staff at our Akasaka sake bar, about 5 minutes from Akasaka and Akasaka-mitsuke stations.');
   const ext = (href, label, cls = 'text-link', event = '') => `<a href="${esc(href)}" class="${cls}" target="_blank" rel="noopener noreferrer"${event ? ` data-track="${event}"` : ''}>${label}<span aria-hidden="true">↗</span></a>`;
   const reserve = () => ext(links.reserve, t('Instagramで予約', 'Reserve via Instagram'), 'button button-red reservation-link', 'reservation_outbound');
   const maps = (short = false) => ext(links.maps, short ? t('地図', 'Maps') : 'Google Maps', 'button button-outline', 'maps_outbound');
