@@ -78,7 +78,7 @@ npm run package
 | `/archives/132` | `/en/` |
 | `/page/2` | `/` |
 
-互換ページはcanonical・可視リンク・JavaScriptによる移動を備え、JavaScript無効時は即時meta refreshで移動します。既知の旧アンカーもJavaScriptで対応付けます。その他の旧記事には対応ページを作らず、通常の404を返す方針です。GitHub Pages単体の静的案内をHTTP 301と呼びません。
+互換ページはcanonical・noindex・即時meta refresh・JavaScriptによる移動を備えます。旧英語URLは英語ページへ、既知の旧アンカーはJavaScriptで対応付けます。meta refreshはJavaScriptやクローラー実装に依存せずhead内で直接指定します。その他の旧記事は、現在ページに明確な同等コンテンツがない限り通常の404を返します。無関係な旧記事をトップへ一括転送してsoft 404化することは避けます。なおGitHub Pages単体では任意パスのHTTP 301を設定できないため、この静的互換をHTTP 301とは呼びません。真の301が必要な場合はCloudflare等のリダイレクト可能な配信層を前段に置きます。
 
 ドメイン登録はお名前.com、権威DNSは維持した `ns1.xserver.jp`〜`ns5.xserver.jp` です。Xserver認証とサーバー情報の確認後、apexのAをPagesの4アドレス、wwwを `toraikura.github.io` のCNAMEへ変更しました。MXは `sv7415.xserver.jp` へ切り替え、SPFからWeb用apexのA参照を除去しています。設定画面の保存後読戻しは完了し、NS・既存wildcard A・他ドメインは維持しています。
 
