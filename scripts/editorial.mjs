@@ -247,8 +247,7 @@ function guidePage({ origin, indexable, analyticsHead }) {
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Chill Labo Akasaka', item: `${origin}/` },
-          { '@type': 'ListItem', position: 2, name: 'Sake Guide', item: `${origin}/guide/` },
-          { '@type': 'ListItem', position: 3, name: '日本酒の辛口とは', item: `${origin}${canonicalPath}` },
+          { '@type': 'ListItem', position: 2, name: '日本酒の辛口とは', item: `${origin}${canonicalPath}` },
         ],
       },
     ],
