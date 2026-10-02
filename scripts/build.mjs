@@ -17,7 +17,7 @@ const links = {
 };
 const esc = s => String(s).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const gaMeasurementId = origin === 'https://chilllabo.tokyo'
-  ? (process.env.GA_MEASUREMENT_ID || 'G-3QMWK2ND4').trim()
+  ? (process.env.GA_MEASUREMENT_ID || 'G-GL74MVB738').trim()
   : '';
 if (gaMeasurementId && !/^G-[A-Z0-9]+$/i.test(gaMeasurementId)) throw new Error('GA_MEASUREMENT_ID must look like a GA4 measurement ID');
 const analyticsHead = gaMeasurementId
