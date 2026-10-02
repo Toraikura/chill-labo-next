@@ -40,7 +40,7 @@ function render(lang) {
   const t = (ja, english) => en ? english : ja;
   const base = en ? '../' : './';
   const canonical = `${origin}/${en ? 'en/' : ''}`;
-  const title = t('赤坂の日本酒バー｜100種類以上を飲み比べ｜Chill Labo Akasaka', 'Sake Bar in Akasaka, Tokyo | Taste 100+ Sake | Chill Labo');
+  const title = t('赤坂の日本酒バー｜100種飲み比べ・1時間3,300円｜Chill Labo', 'Sake Bar in Akasaka, Tokyo | Taste 100+ Sake | Chill Labo');
   const description = t('赤坂・赤坂見附駅から徒歩約5分。日本酒100種類以上を少しずつ飲み比べ。最初の1時間3,300円（税込）。初心者・一人飲み歓迎、英語対応。', 'Taste 100+ sake selections in Akasaka, Tokyo, about 5 minutes from Akasaka and Akasaka-mitsuke stations. First hour ¥3,300 incl. tax. Beginners, solo guests and English speakers welcome.');
   const ext = (href, label, cls = 'text-link', event = '') => `<a href="${esc(href)}" class="${cls}" target="_blank" rel="noopener noreferrer"${event ? ` data-track="${event}"` : ''}>${label}<span aria-hidden="true">↗</span></a>`;
   const reserve = () => ext(links.reserve, t('Instagramで予約', 'Reserve via Instagram'), 'button button-red reservation-link', 'reservation_outbound');
