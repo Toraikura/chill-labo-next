@@ -44,14 +44,11 @@ for (const [file, lang] of [['index.html', 'ja'], ['en/index.html', 'en']]) {
 console.log('Static publication checks passed. Browser/device QA is separate.');
 const siteJs = await readFile(path.join(root, 'assets/js/site.js'), 'utf8');
 assert(siteJs.includes("window.gtag('event'"), 'site.js: tracked intent events must be sent to GA4');
-for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) {
-  assert(homepageEventSource(eventName), `tracking source missing: ${eventName}`);
-}
-function homepageEventSource(eventName) {
-  return siteJs.includes('link.dataset.track') && (eventName === 'phone_click' || true);
-}
+assert(siteJs.includes('link.dataset.track'), 'site.js: data-track events must be wired');
 const homepage = await readFile(path.join(root, 'index.html'), 'utf8');
-for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) assert(homepage.includes(`data-track="${eventName}"`), `index.html: missing ${eventName}`);
+for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) {
+  assert(homepage.includes(`data-track="${eventName}"`), `index.html: missing ${eventName}`);
+}
 const origin = homepage.match(/rel="canonical" href="([^"]+)"/)[1].replace(/\/$/, '');
 for (const [route, target] of [['sakebar_chilllaboakasaka', '/en/'], ['archives/129', '/'], ['archives/132', '/en/'], ['page/2', '/']]) {
   const html = await readFile(path.join(root, route, 'index.html'), 'utf8');
