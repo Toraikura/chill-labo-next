@@ -50,10 +50,13 @@ for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbou
   assert(homepage.includes(`data-track="${eventName}"`), `index.html: missing ${eventName}`);
 }
 const origin = homepage.match(/rel="canonical" href="([^"]+)"/)[1].replace(/\/$/, '');
-for (const [route, target] of [['sakebar_chilllaboakasaka', '/en/'], ['archives/129', '/'], ['archives/132', '/en/'], ['page/2', '/']]) {
+for (const [route, target, lang] of [['sakebar_chilllaboakasaka', '/en/', 'en'], ['archives/129', '/', 'ja'], ['archives/132', '/en/', 'en'], ['page/2', '/', 'ja']]) {
   const html = await readFile(path.join(root, route, 'index.html'), 'utf8');
+  assert(html.includes(`<html lang="${lang}">`), `${route}: legacy language`);
   assert(html.includes(`rel="canonical" href="${origin}${target}"`), `${route}: wrong destination`);
-  assert(html.includes('noindex,follow') && html.includes('http-equiv="refresh"'), `${route}: static compatibility policy`);
+  assert(html.includes(`<meta http-equiv="refresh" content="0;url=${origin}${target}">`), `${route}: immediate meta redirect`);
+  assert(html.includes('noindex,follow'), `${route}: legacy page must be noindex`);
+  assert(!html.includes('<noscript><meta http-equiv="refresh"'), `${route}: redirect must not depend on noscript`);
 }
 if (origin === 'https://chilllabo.tokyo') {
   for (const file of ['index.html', 'en/index.html']) assert((await readFile(path.join(root, file), 'utf8')).includes('content="index,follow"'), `${file}: production must be indexable`);
