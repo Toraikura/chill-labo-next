@@ -29,7 +29,7 @@ for (const [file, lang] of [['index.html', 'ja'], ['en/index.html', 'en']]) {
   const canonical = html.match(/rel="canonical" href="([^"]+)"/)[1];
   assert.equal(schema.url, canonical);
   assert(canonical.endsWith(lang === 'en' ? '/en/' : '/'));
-  const gaMeasurementId = 'G-3QMWK2ND4';
+  const gaMeasurementId = 'G-GL74MVB738';
   if (canonical.startsWith('https://chilllabo.tokyo/')) {
     assert(html.includes(`googletagmanager.com/gtag/js?id=${gaMeasurementId}`), `${file}: GA4 loader`);
     assert(html.includes(`gtag('config','${gaMeasurementId}')`), `${file}: GA4 config`);
