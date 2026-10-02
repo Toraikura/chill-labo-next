@@ -3,6 +3,7 @@
 実写を中心にした日英の静的サイト。2Fの飲み比べ・料金・予約を入口に、料理付きコース、準備中の1F Bottle Shop、SAKE ART TOKYO、FERMENTATION PLAYGROUNDへつなぎます。
 
 本番：日本語 https://chilllabo.tokyo/ ／ English https://chilllabo.tokyo/en/
+エバーグリーン：Story https://chilllabo.tokyo/story/ ／ Sake Guide https://chilllabo.tokyo/guide/sake-karakuchi/
 
 **2026-09-11 08:57 JST、本番HTTPS公開を確認しました。** 正しいドメインの証明書、日英ページの200応答、HTTPS強制、HTTP／wwwから正規URLへの転送を、通常DNSと証明書検証ありで確認済みです。従来のGitHub PagesプロジェクトURLも本番へ転送されます。
 
@@ -19,6 +20,7 @@ npm run package
 ```
 
 - `scripts/build.mjs`：日英共通の本文・リンク・メタ情報の編集元。`index.html`、`en/index.html`、`404.html`、`robots.txt`、`sitemap.xml`と旧URLの互換案内を生成します。生成HTMLだけの手修正は次のビルドで失われます。
+- `scripts/editorial.mjs`：検索・AI検索向けのエバーグリーン記事 `/story/` と `/guide/sake-karakuchi/` を生成します。旧WordPress記事689/709を現行の店舗情報と根拠に合わせて再構成し、古い統計値や古い店舗情報は持ち込みません。
 - `scripts/build-production.mjs`：本番ドメインと検索許可を指定するローカル生成用入口。`npm run build:production` で実行でき、DNSやPagesの設定は変更しません。
 - `scripts/legacy.mjs`：旧英語・旧案内ページなど4経路の静的互換ページを生成します。HTTP 301転送ではありません。
 - `assets/css/styles.css`：レイアウト・配色・レスポンシブ表示。
@@ -53,7 +55,7 @@ python3 -m http.server 8080
 | `GA_MEASUREMENT_ID` | 本番 `https://chilllabo.tokyo` だけで使用。未指定時は `G-GL74MVB738`。GitHub previewでは送信しない |
 | canonical / hreflang | 設定したoriginから日英の自己参照canonicalと相互の言語URLを生成 |
 | robots.txt | `GPTBot` は `Disallow: /`、その他は `Allow: /`。本番の検索許可時のみSitemap行を追加 |
-| sitemap.xml | 設定したoriginの `/` と `/en/` を生成 |
+| sitemap.xml | 設定したoriginの `/`、`/en/`、`/story/`、`/guide/sake-karakuchi/` を生成 |
 
 GitHubのプロジェクト配下の `robots.txt` を、ドメインルートのクローラー制御と同一視しません。確認用公開の検索除外はHTMLの `noindex` で示します。GoogleやAIサービスの到達・掲載・引用を確認したという意味ではありません。
 
@@ -77,12 +79,16 @@ npm run package
 | `/archives/129` | `/` |
 | `/archives/132` | `/en/` |
 | `/page/2` | `/` |
+| `/archives/689` | `/story/` |
+| `/archives/709` | `/guide/sake-karakuchi/` |
 
 互換ページはcanonical・noindex・即時meta refresh・JavaScriptによる移動を備えます。旧英語URLは英語ページへ、既知の旧アンカーはJavaScriptで対応付けます。meta refreshはJavaScriptやクローラー実装に依存せずhead内で直接指定します。その他の旧記事は、現在ページに明確な同等コンテンツがない限り通常の404を返します。無関係な旧記事をトップへ一括転送してsoft 404化することは避けます。なおGitHub Pages単体では任意パスのHTTP 301を設定できないため、この静的互換をHTTP 301とは呼びません。真の301が必要な場合はCloudflare等のリダイレクト可能な配信層を前段に置きます。
 
-ドメイン登録はお名前.com、権威DNSは維持した `ns1.xserver.jp`〜`ns5.xserver.jp` です。Xserver認証とサーバー情報の確認後、apexのAをPagesの4アドレス、wwwを `toraikura.github.io` のCNAMEへ変更しました。MXは `sv7415.xserver.jp` へ切り替え、SPFからWeb用apexのA参照を除去しています。設定画面の保存後読戻しは完了し、NS・既存wildcard A・他ドメインは維持しています。
+ドメイン登録はお名前.com、現在の権威DNSはCloudflareです。NSは `brett.ns.cloudflare.com` / `maya.ns.cloudflare.com`。GitHub Pages用apex A 4本はCloudflare Proxy（Proxied）、`www` の `toraikura.github.io` CNAMEはDNS onlyで運用しています。メールはXServerを継続し、MX `0 sv7415.xserver.jp.` とSPF `v=spf1 +a:sv7415.xserver.jp +mx include:spf.sender.xserver.jp ~all` を維持しています。
 
-DNS・TLS・HTTPS強制と、HTTPルートのキャッシュ更新後の実転送を確認済みです。Remove／再登録は通算2回実施済みで、待機時間だけを理由に繰り返しません。自動化 `chill-labo` は `PAUSED` のまま、公開確認完了後も停止を維持します。正確な設定値・観測時刻・最終記録欄は[GO_LIVE.md](GO_LIVE.md)を参照してください。
+Cloudflare Single Redirectsでは旧URLをHTTP 301へ正規化しています。2026-10-02時点で9ルールがActiveで、旧英語URL、旧home/contact/access、旧WordPressの一部既知URL、`eo_month` 旧カレンダーURLを処理済みです。旧記事689/709はこのリポジトリ側でも静的互換を用意しますが、検索評価を明示的に新ページへ統合するためのCloudflare HTTP 301は別途追加確認が必要です。Single RedirectsのFree枠上限を超えないよう、既存ルールの統合またはBulk Redirects移行を先に行います。
+
+DNS・TLS・HTTPS強制と、HTTPルート `/` のHTTPSへの301転送は実測済みです。Cloudflare SSL/TLSはFull、Universal SSL / TLS 1.3 / Automatic HTTPS Rewritesは有効。正確な設定値・観測時刻・最終記録欄は[GO_LIVE.md](GO_LIVE.md)も参照してください。
 
 ## 検証の範囲
 

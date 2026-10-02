@@ -6,6 +6,8 @@ const legacyRoutes = [
   ['archives/129', '/', 'ja'],
   ['archives/132', '/en/', 'en'],
   ['page/2', '/', 'ja'],
+  ['archives/689', '/story/', 'ja'],
+  ['archives/709', '/guide/sake-karakuchi/', 'ja'],
 ];
 
 const legacyHashes = {
