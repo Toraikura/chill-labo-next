@@ -1,0 +1,22 @@
+name: Validate CTR title experiment
+
+on:
+  push:
+    branches: ["ctr-title-experiment-20261003"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build production bundle and run checks
+        run: |
+          npm run build:production
+          npm run check
+          npm run package
