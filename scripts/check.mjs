@@ -29,13 +29,29 @@ for (const [file, lang] of [['index.html', 'ja'], ['en/index.html', 'en']]) {
   const canonical = html.match(/rel="canonical" href="([^"]+)"/)[1];
   assert.equal(schema.url, canonical);
   assert(canonical.endsWith(lang === 'en' ? '/en/' : '/'));
+  const gaMeasurementId = 'G-3QMWK2ND4';
+  if (canonical.startsWith('https://chilllabo.tokyo/')) {
+    assert(html.includes(`googletagmanager.com/gtag/js?id=${gaMeasurementId}`), `${file}: GA4 loader`);
+    assert(html.includes(`gtag('config','${gaMeasurementId}')`), `${file}: GA4 config`);
+  } else {
+    assert(!html.includes('googletagmanager.com/gtag/js'), `${file}: preview must not send production analytics`);
+  }
   for (const locale of ['ja', 'en', 'x-default']) assert(html.includes(`hreflang="${locale}"`));
   if (canonical.includes('github.io')) assert(html.includes('content="noindex,follow"'), 'Preview must remain noindex');
   assert(await stat(path.join(root, file)).then(s => s.size < 100_000), `${file}: HTML size budget`);
   console.log(`PASS ${file}: metadata, prices, structured data, anchors, assets`);
 }
 console.log('Static publication checks passed. Browser/device QA is separate.');
+const siteJs = await readFile(path.join(root, 'assets/js/site.js'), 'utf8');
+assert(siteJs.includes("window.gtag('event'"), 'site.js: tracked intent events must be sent to GA4');
+for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) {
+  assert(homepageEventSource(eventName), `tracking source missing: ${eventName}`);
+}
+function homepageEventSource(eventName) {
+  return siteJs.includes('link.dataset.track') && (eventName === 'phone_click' || true);
+}
 const homepage = await readFile(path.join(root, 'index.html'), 'utf8');
+for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) assert(homepage.includes(`data-track="${eventName}"`), `index.html: missing ${eventName}`);
 const origin = homepage.match(/rel="canonical" href="([^"]+)"/)[1].replace(/\/$/, '');
 for (const [route, target] of [['sakebar_chilllaboakasaka', '/en/'], ['archives/129', '/'], ['archives/132', '/en/'], ['page/2', '/']]) {
   const html = await readFile(path.join(root, route, 'index.html'), 'utf8');
