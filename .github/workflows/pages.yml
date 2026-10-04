@@ -33,6 +33,7 @@ jobs:
         env:
           SITE_ORIGIN: ${{ vars.SITE_ORIGIN || 'https://toraikura.github.io/chill-labo-next' }}
           SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'false' }}
+          CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID || '' }}
         run: |
           npm run build
           npm run check
