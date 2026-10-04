@@ -1,0 +1,53 @@
+name: Booking layout regression
+
+on:
+  pull_request:
+    paths:
+      - 'assets/**'
+      - 'scripts/**'
+      - '.github/workflows/booking-layout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: booking-layout-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and package production pages
+        env:
+          SITE_ORIGIN: https://chilllabo.tokyo
+          SITE_INDEXABLE: 'true'
+        run: |
+          npm run build
+          npm run check
+          npm run package
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0 beautifulsoup4==4.14.3
+          python -m playwright install --with-deps chromium webkit
+      - name: Check booking visibility, interaction and tracking
+        env:
+          QA_OUTPUT: ${{ runner.temp }}/booking-qa
+        run: python scripts/test_booking_layout.py --site _site --browsers chromium,webkit
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: booking-layout-evidence
+          path: ${{ runner.temp }}/booking-qa
+          if-no-files-found: ignore
+          retention-days: 14
