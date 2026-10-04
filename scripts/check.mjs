@@ -46,9 +46,11 @@ const siteJs = await readFile(path.join(root, 'assets/js/site.js'), 'utf8');
 assert(siteJs.includes("window.gtag('event'"), 'site.js: tracked intent events must be sent to GA4');
 assert(siteJs.includes('link.dataset.track'), 'site.js: data-track events must be wired');
 const homepage = await readFile(path.join(root, 'index.html'), 'utf8');
-for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'phone_click']) {
+for (const eventName of ['reservation_outbound', 'maps_outbound', 'course_outbound', 'tabelog_outbound', 'tablecheck_outbound', 'phone_click']) {
   assert(homepage.includes(`data-track="${eventName}"`), `index.html: missing ${eventName}`);
 }
+assert(homepage.includes('tabelog.com/tokyo/A1308/A130801/13261005/'), 'index.html: Tabelog booking link');
+assert(homepage.includes('tablecheck.com/ja/chilllabo-tokyo'), 'index.html: TableCheck booking link');
 const origin = homepage.match(/rel="canonical" href="([^"]+)"/)[1].replace(/\/$/, '');
 for (const [route, target, lang] of [['sakebar_chilllaboakasaka', '/en/', 'en'], ['archives/129', '/', 'ja'], ['archives/132', '/en/', 'en'], ['page/2', '/', 'ja'], ['archives/689', '/story/', 'ja'], ['archives/709', '/guide/sake-karakuchi/', 'ja']]) {
   const html = await readFile(path.join(root, route, 'index.html'), 'utf8');
