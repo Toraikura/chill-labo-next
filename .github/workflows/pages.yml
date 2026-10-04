@@ -77,3 +77,39 @@ jobs:
           sitemap="$(curl --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors https://chilllabo.tokyo/sitemap.xml)"
           printf '%s' "$sitemap" | grep -F '<loc>https://chilllabo.tokyo/story/</loc>' >/dev/null
           printf '%s' "$sitemap" | grep -F '<loc>https://chilllabo.tokyo/guide/sake-karakuchi/</loc>' >/dev/null
+
+      - name: Verify public asset fingerprints
+        if: ${{ vars.SITE_ORIGIN == 'https://chilllabo.tokyo' }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          import { createHash } from 'node:crypto';
+          import { setTimeout as delay } from 'node:timers/promises';
+          const origin = 'https://chilllabo.tokyo';
+          const manifest = JSON.parse(await readFile('_site/assets/asset-manifest.json', 'utf8'));
+          async function verify() {
+            for (const route of ['/', '/en/', '/story/', '/guide/sake-karakuchi/']) {
+              const response = await fetch(origin + route, { signal: AbortSignal.timeout(15000) });
+              assert.equal(response.status, 200, route);
+              const html = await response.text();
+              for (const asset of Object.values(manifest)) assert(html.includes(asset), `${route}: old asset reference ${asset}`);
+            }
+            for (const asset of Object.values(manifest)) {
+              const response = await fetch(`${origin}/${asset}`, { signal: AbortSignal.timeout(15000) });
+              assert.equal(response.status, 200, asset);
+              const actual = Buffer.from(await response.arrayBuffer());
+              const expected = await readFile(`_site/${asset}`);
+              assert(actual.equals(expected), `${asset}: published bytes differ from build`);
+              console.log(`Verified ${asset}: ${createHash('sha256').update(actual).digest('hex')}`);
+            }
+          }
+          for (let attempt = 0; ; attempt++) {
+            try { await verify(); break; }
+            catch (error) {
+              if (attempt >= 9) throw error;
+              console.log(`Waiting for public deployment propagation: ${error.message}`);
+              await delay(4000);
+            }
+          }
+          NODE
