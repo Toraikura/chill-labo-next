@@ -173,6 +173,99 @@ section {
   background:var(--ink);
   color:var(--chalk);
 }
+.booking-entry {
+  min-width:0;
+}
+.booking-providers-mobile {
+  display:none;
+}
+.booking-providers-desktop {
+  gap:8px;
+}
+.booking-providers-desktop .button {
+  padding-inline:16px;
+  white-space:nowrap;
+}
+.booking-chooser {
+  position:relative;
+  border:0;
+  min-width:0;
+}
+.booking-chooser>summary {
+  list-style:none;
+  cursor:pointer;
+}
+.booking-chooser>summary::-webkit-details-marker {
+  display:none;
+}
+.booking-chooser>summary>span {
+  font-size:16px;
+  transition:transform .2s;
+}
+.booking-chooser[open]>summary>span {
+  transform:rotate(45deg);
+}
+.booking-chooser-panel {
+  position:absolute;
+  z-index:40;
+  top:calc(100% + 8px);
+  right:0;
+  min-width:210px;
+  padding:8px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 12px 28px rgba(48,32,41,.14);
+}
+.booking-chooser-link {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  padding:12px 10px;
+  color:var(--ink);
+  text-decoration:none;
+  font-size:12px;
+  font-weight:700;
+  border-bottom:1px solid rgba(48,32,41,.12);
+}
+.booking-chooser-link:last-child {
+  border-bottom:0;
+}
+.booking-chooser-link>span {
+  font-size:17px;
+}
+.header-booking .booking-providers-desktop {
+  display:none;
+}
+.header-booking .booking-providers-mobile {
+  display:flex;
+}
+.header-booking .booking-chooser>summary {
+  min-height:40px;
+  padding:9px 16px;
+  background:var(--ink);
+}
+.header-booking .booking-chooser-panel {
+  right:0;
+}
+.mobile-menu-booking {
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+}
+.mobile-menu-booking>.fine {
+  margin-bottom:4px;
+}
+.mobile-menu-booking-link {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:700;
+  border-bottom:1px solid var(--line);
+}
 .skip-link {
   position:fixed;
   top:-100px;
@@ -732,16 +825,6 @@ details[open]>summary .toggle::after {
 .booking .actions {
   margin-top:25px;
 }
-.booking-alt-label {
-  margin-top:22px!important;
-}
-.booking-alt-actions {
-  flex-wrap:wrap;
-  margin-top:10px!important;
-}
-.booking-alt-actions .button {
-  min-width:155px;
-}
 .booking-help details {
   border-block:1px solid var(--line);
 }
@@ -1123,6 +1206,28 @@ html[lang=en] .house h2 {
   }
 }
 @media(max-width:900px) {
+  .booking-providers-desktop {
+    display:none;
+  }
+  .booking-providers-mobile {
+    display:flex;
+    gap:8px;
+    align-items:stretch;
+  }
+  .booking-providers-mobile .booking-chooser {
+    flex:1;
+  }
+  .booking-providers-mobile .booking-chooser>summary {
+    width:100%;
+  }
+  .booking-providers-mobile>.button {
+    flex:0 0 auto;
+  }
+  .booking-chooser-panel {
+    left:0;
+    right:auto;
+    width:min(280px,calc(100vw - 44px));
+  }
   .site-header {
     height:72px;
     justify-content:space-between;
@@ -1379,6 +1484,37 @@ html[lang=en] .house h2 {
   }
 }
 @media(max-width:600px) {
+  .booking-entry {
+    width:100%;
+  }
+  .service-inner>.booking-entry,
+  .price-detail .booking-entry,
+  .return .booking-entry,
+  .booking .booking-entry {
+    width:100%;
+  }
+  .booking-providers-mobile {
+    width:100%;
+  }
+  .booking-providers-mobile .booking-chooser>summary,
+  .booking-providers-mobile>.button {
+    min-height:46px;
+    font-size:12px;
+    padding:10px 14px;
+  }
+  .sticky-actions>.booking-entry {
+    width:100%;
+  }
+  .sticky-actions .booking-providers-mobile {
+    flex-wrap:nowrap;
+  }
+  .sticky-actions .booking-chooser {
+    flex:1;
+  }
+  .sticky-actions .booking-chooser-panel {
+    top:auto;
+    bottom:calc(100% + 8px);
+  }
   :root {
     --gutter:22px;
   }
@@ -1749,14 +1885,6 @@ html[lang=en] .house h2 {
     flex-wrap:nowrap;
     gap:8px;
     margin-top:20px;
-  }
-  .booking .booking-alt-actions {
-    flex-wrap:wrap;
-    margin-top:10px!important;
-  }
-  .booking-alt-actions .button {
-    flex:1 1 145px;
-    min-width:0;
   }
   .booking .actions .reservation-link {
     flex:1;
