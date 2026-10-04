@@ -1,0 +1,58 @@
+/* Booking controls own their display state; never show both variants together. */
+.booking-entry {
+  min-width:0;
+  max-width:100%;
+}
+.booking-entry>.booking-providers-desktop {
+  display:flex;
+  flex-wrap:wrap;
+}
+.booking-entry>.booking-providers-mobile {
+  display:none;
+}
+.header-booking>.booking-providers-desktop {
+  display:none;
+}
+.header-booking>.booking-providers-mobile {
+  display:flex;
+}
+.service-inner {
+  flex-wrap:wrap;
+}
+.service-inner>.booking-entry {
+  flex-shrink:1;
+}
+@media(max-width:900px) {
+  .booking-entry>.booking-providers-desktop {
+    display:none;
+  }
+  .booking-entry>.booking-providers-mobile {
+    display:flex;
+    flex-wrap:nowrap;
+    width:100%;
+  }
+  .booking-providers-mobile .booking-chooser {
+    flex:1 1 0;
+  }
+  .service-inner>.booking-entry {
+    width:100%;
+    justify-self:stretch;
+  }
+  .service-inner .booking-chooser-panel {
+    left:auto;
+    right:0;
+  }
+  .sticky-actions>.booking-entry {
+    width:100%;
+  }
+  .sticky-actions .booking-chooser-panel {
+    top:auto;
+    bottom:calc(100% + 8px);
+  }
+}
+@media(max-width:600px) {
+  .service-inner .booking-chooser-panel {
+    left:0;
+    right:auto;
+  }
+}
