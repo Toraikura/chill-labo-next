@@ -27,7 +27,7 @@ const gaHead = gaMeasurementId
   ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(gaMeasurementId)}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${esc(gaMeasurementId)}');</script>`
   : '';
 const clarityProjectId = origin === 'https://chilllabo.tokyo'
-  ? (process.env.CLARITY_PROJECT_ID || '').trim()
+  ? (process.env.CLARITY_PROJECT_ID || 'ys8l0f6sqd').trim()
   : '';
 if (clarityProjectId && !/^[A-Za-z0-9_-]+$/.test(clarityProjectId)) throw new Error('CLARITY_PROJECT_ID contains unsupported characters');
 const clarityHead = clarityProjectId
