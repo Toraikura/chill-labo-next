@@ -732,6 +732,16 @@ details[open]>summary .toggle::after {
 .booking .actions {
   margin-top:25px;
 }
+.booking-alt-label {
+  margin-top:22px!important;
+}
+.booking-alt-actions {
+  flex-wrap:wrap;
+  margin-top:10px!important;
+}
+.booking-alt-actions .button {
+  min-width:155px;
+}
 .booking-help details {
   border-block:1px solid var(--line);
 }
@@ -1739,6 +1749,14 @@ html[lang=en] .house h2 {
     flex-wrap:nowrap;
     gap:8px;
     margin-top:20px;
+  }
+  .booking .booking-alt-actions {
+    flex-wrap:wrap;
+    margin-top:10px!important;
+  }
+  .booking-alt-actions .button {
+    flex:1 1 145px;
+    min-width:0;
   }
   .booking .actions .reservation-link {
     flex:1;
