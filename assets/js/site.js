@@ -71,12 +71,29 @@
   // Explicit intent events supplement GA4's automatic page-view and outbound-click collection.
   // These clicks indicate navigation intent only; they are not treated as completed reservations or visits.
   const sendAnalytics = (eventName, parameters = {}) => {
-    if (typeof window.gtag !== 'function') return;
-    window.gtag('event', eventName, { language: en ? 'en' : 'ja', ...parameters });
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, { language: en ? 'en' : 'ja', ...parameters });
+    }
+    if (typeof window.clarity === 'function') {
+      window.clarity('event', eventName);
+    }
   };
   document.querySelectorAll('[data-track]').forEach(link => {
     link.addEventListener('click', () => {
       sendAnalytics(link.dataset.track, { link_url: link.href });
     });
+  });
+
+  const bookingChoosers = [...document.querySelectorAll('.booking-chooser')];
+  bookingChoosers.forEach(chooser => {
+    chooser.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { chooser.open = false; }));
+  });
+  document.addEventListener('click', event => {
+    bookingChoosers.forEach(chooser => {
+      if (chooser.open && !chooser.contains(event.target)) chooser.open = false;
+    });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') bookingChoosers.forEach(chooser => { chooser.open = false; });
   });
 })();
