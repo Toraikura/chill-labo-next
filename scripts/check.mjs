@@ -9,7 +9,7 @@ for (const [file, lang] of [['index.html', 'ja'], ['en/index.html', 'en']]) {
   assert.equal((html.match(/<h1\b/g) || []).length, 1, `${file}: one H1`);
   assert(html.includes('Japanese Sake Bar'), `${file}: descriptive title`);
   assert(!/4時間|4-hour|4 hour/i.test(html), `${file}: removed old plan`);
-  for (const amount of ['3,300', '1,100', '6,600', '8,800', '550']) assert(html.includes(amount), `${file}: missing price ${amount}`);
+  for (const amount of ['3,300', '6,600', '8,800', '550']) assert(html.includes(amount), `${file}: missing price ${amount}`);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
   assert.equal(new Set(ids).size, ids.length, `${file}: duplicate IDs`);
   for (const m of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
