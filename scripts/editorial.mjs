@@ -89,7 +89,7 @@ ${analyticsHead}
 <footer class="site-footer wrap editorial-footer">
   <div>
     <a class="brand footer-brand" href="${origin}/"><span class="wordmark">CHILL LABO</span><span class="brand-place">AKASAKA</span></a>
-    <p class="fine">東京都港区赤坂4-3-27 2F<br><a href="tel:+818087008528" data-track="phone_click">080-8700-8528</a></p>
+    <p class="fine">東京都港区赤坂4-3-27 1F<br><a href="tel:+818087008528" data-track="phone_click">080-8700-8528</a></p>
   </div>
   <nav aria-label="関連記事">
     <a href="${origin}/story/">STORY</a>
