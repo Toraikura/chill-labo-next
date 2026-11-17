@@ -95,6 +95,7 @@ ${analyticsHead}
     <a href="${origin}/story/">STORY</a>
     <a href="${origin}/guide/sake-karakuchi/">SAKE GUIDE</a>
     <a href="${origin}/">店舗TOP</a>
+    <a href="${origin}/privacy/">プライバシーポリシー</a>
     <a href="https://www.instagram.com/CHILLLABOTOKYO/" target="_blank" rel="noopener noreferrer" data-track="instagram_outbound">Instagram↗</a>
   </nav>
   <p class="copyright">© ${new Date().getFullYear()} CHILL LABO AKASAKA</p>
